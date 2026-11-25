@@ -43,6 +43,7 @@
 **⚙️ Settings**
 - Custom screenshot shortcut, display toggles, launch at login
 - Language: follow system / 简体中文 / English
+- **Check for updates** — Eave checks GitHub daily; when a new version is out, click **Update Now** and it downloads, verifies its signature, installs and relaunches by itself
 
 ## Install
 
@@ -54,7 +55,7 @@ brew trust --cask joeqiao64/tap/eave   # Homebrew asks you to trust third-party 
 brew install --cask joeqiao64/tap/eave
 ```
 
-Update later with `brew upgrade --cask eave`.
+Eave updates itself from **Settings → Updates** (or `brew upgrade --cask eave`).
 
 ### Manual download
 

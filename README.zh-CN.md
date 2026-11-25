@@ -44,6 +44,7 @@
 **⚙️ 设置**
 - 自定义截图快捷键、各项显示开关、开机自动启动
 - 界面语言：跟随系统 / 简体中文 / English
+- **检查更新**：每天自动检查 GitHub，有新版本时点「立即更新」，自动下载、验证签名、安装并重启
 
 ## 安装
 
@@ -55,7 +56,7 @@ brew trust --cask joeqiao64/tap/eave   # Homebrew 要求第三方安装包先信
 brew install --cask joeqiao64/tap/eave
 ```
 
-以后更新：`brew upgrade --cask eave`
+以后更新：在 **设置 → 更新** 里点「立即更新」，或运行 `brew upgrade --cask eave`
 
 ### 手动下载
 
