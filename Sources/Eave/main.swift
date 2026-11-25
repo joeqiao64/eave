@@ -13,6 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         notch = NotchController()
         notch.start()
+        Updater.shared.startAutomaticChecks()
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem.button?.image = MenuBarIcon.make()
@@ -25,6 +26,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         let s = AppSettings.shared
+        if let v = Updater.shared.availableVersion {
+            let up = NSMenuItem(title: L("更新到 \(v)…", "Update to \(v)…"), action: #selector(openSettings), keyEquivalent: "")
+            up.target = self
+            up.image = NSImage(systemSymbolName: "arrow.down.circle.fill", accessibilityDescription: nil)
+            menu.addItem(up)
+            menu.addItem(.separator())
+        }
         let shot = NSMenuItem(title: L("截图", "Screenshot"), action: #selector(takeScreenshot), keyEquivalent: "")
         shot.target = self
         shot.attributedTitle = NSAttributedString(string: L("截图", "Screenshot") + "    \(s.screenshotShortcut.display)")

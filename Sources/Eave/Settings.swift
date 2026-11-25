@@ -65,6 +65,9 @@ final class AppSettings: ObservableObject {
     @Published var showCompactMusic: Bool { didSet { d.set(showCompactMusic, forKey: "showCompactMusic") } }
     @Published var showShelfReminder: Bool { didSet { d.set(showShelfReminder, forKey: "showShelfReminder") } }
     @Published var language: AppLanguage { didSet { d.set(language.rawValue, forKey: "language") } }
+    @Published var autoCheckUpdates: Bool {
+        didSet { d.set(autoCheckUpdates, forKey: "autoCheckUpdates"); Updater.shared.startAutomaticChecks() }
+    }
 
     /// "System" follows the first preferred macOS language: Chinese → 中文, anything else → English.
     var isEnglish: Bool {
@@ -94,6 +97,7 @@ final class AppSettings: ObservableObject {
         showCompactMusic = bool("showCompactMusic", true)
         showShelfReminder = bool("showShelfReminder", true)
         language = AppLanguage(rawValue: d.string(forKey: "language") ?? "") ?? .system
+        autoCheckUpdates = bool("autoCheckUpdates", true)
     }
 
     func setLaunchAtLogin(_ on: Bool) {
@@ -174,6 +178,62 @@ final class RecorderButton: NSButton {
     }
 }
 
+// MARK: - Update section
+
+private struct UpdateSection: View {
+    @ObservedObject var settings: AppSettings
+    @ObservedObject var updater = Updater.shared
+
+    var body: some View {
+        Section(L("更新", "Updates")) {
+            LabeledContent(L("当前版本", "Current version"), value: updater.currentVersion)
+            HStack(spacing: 10) {
+                status
+                Spacer()
+                action
+            }
+            Toggle(L("自动检查更新", "Check for updates automatically"), isOn: $settings.autoCheckUpdates)
+        }
+    }
+
+    @ViewBuilder private var status: some View {
+        switch updater.state {
+        case .idle:
+            Text(L("还没有检查过", "Not checked yet")).foregroundStyle(.secondary)
+        case .checking:
+            HStack(spacing: 6) { ProgressView().controlSize(.small); Text(L("正在检查…", "Checking…")) }
+        case .upToDate:
+            Label(L("已是最新版本", "You're up to date"), systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+        case .available(let v):
+            VStack(alignment: .leading, spacing: 2) {
+                Label(L("发现新版本 \(v)", "Version \(v) is available"), systemImage: "arrow.down.circle.fill")
+                    .foregroundStyle(.blue)
+                Link(L("查看更新内容", "What's new"), destination: Updater.releasesPage).font(.caption)
+            }
+        case .downloading(let p):
+            HStack(spacing: 8) {
+                ProgressView(value: p).frame(width: 120)
+                Text(L("正在下载…", "Downloading…")).foregroundStyle(.secondary)
+            }
+        case .installing:
+            HStack(spacing: 6) { ProgressView().controlSize(.small); Text(L("正在安装，马上重启…", "Installing, relaunching…")) }
+        case .failed(let msg):
+            Label(msg, systemImage: "exclamationmark.triangle.fill").foregroundStyle(.orange).lineLimit(2)
+        }
+    }
+
+    @ViewBuilder private var action: some View {
+        switch updater.state {
+        case .available:
+            Button(L("立即更新", "Update Now")) { updater.installUpdate() }.buttonStyle(.borderedProminent)
+        case .checking, .downloading, .installing:
+            EmptyView()
+        default:
+            Button(L("检查更新", "Check for Updates")) { updater.check() }
+        }
+    }
+}
+
 // MARK: - Settings window
 
 struct SettingsView: View {
@@ -212,9 +272,7 @@ struct SettingsView: View {
                 Toggle(L("开机自动启动", "Launch at login"), isOn: Binding(get: { settings.launchAtLogin },
                                                   set: { settings.setLaunchAtLogin($0) }))
             }
-            Section {
-                LabeledContent(L("版本", "Version"), value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "–")
-            }
+            UpdateSection(settings: settings)
         }
         .formStyle(.grouped)
         .frame(width: 440)

@@ -363,6 +363,13 @@ final class NotchController {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { SettingsWindowController.shared.snapshot(to: p) }
             }
         }
+        dnc.addObserver(forName: .init("com.local.perch.checkupdate"), object: nil, queue: .main) { _ in Updater.shared.check() }
+        dnc.addObserver(forName: .init("com.local.perch.installupdate"), object: nil, queue: .main) { _ in Updater.shared.installUpdate() }
+        dnc.addObserver(forName: .init("com.local.perch.verifysig"), object: nil, queue: .main) { n in
+            guard let path = n.userInfo?["path"] as? String else { return }
+            let ok = Updater.isSignedLikeMe(URL(fileURLWithPath: path))
+            try? (ok ? "ACCEPTED" : "REJECTED").write(toFile: path + ".result", atomically: true, encoding: .utf8)
+        }
         dnc.addObserver(forName: .init("com.local.perch.music"), object: nil, queue: .main) { [weak self] _ in
             withAnimation(Self.openSpring) { self?.model.page = .music }
         }
