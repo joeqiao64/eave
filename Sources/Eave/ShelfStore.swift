@@ -149,7 +149,7 @@ final class ShelfStore: ObservableObject {
     private static func defaultImageName() -> String {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd HH.mm.ss"
-        return "图片 " + f.string(from: Date())
+        return L("图片 ", "Image ") + f.string(from: Date())
     }
 
     static func uniqueURL(base: String, ext: String) -> URL {

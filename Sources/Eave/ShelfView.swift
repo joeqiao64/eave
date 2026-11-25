@@ -4,6 +4,7 @@ import AppKit
 // MARK: - Shelf page
 
 struct ShelfPage: View {
+    @ObservedObject var settings = AppSettings.shared   // re-render on language change
     @ObservedObject var model: NotchModel
     @ObservedObject var shelf: ShelfStore
     @ObservedObject var player: NowPlaying
@@ -17,7 +18,7 @@ struct ShelfPage: View {
             HStack(spacing: 0) {
                 HStack(spacing: 6) {
                     TopIconButton(symbol: "chevron.left") { withAnimation(NotchController.openSpring) { model.page = .music } }
-                    Text("文件架").font(.system(size: 11, weight: .semibold)).foregroundStyle(.white.opacity(0.7))
+                    Text(L("文件架", "Shelf")).font(.system(size: 11, weight: .semibold)).foregroundStyle(.white.opacity(0.7))
                 }
                 .frame(width: sideZone - 14, alignment: .leading)
                 Spacer(minLength: model.notchSize.width)
@@ -65,6 +66,7 @@ struct ShelfPage: View {
 }
 
 private struct DropHint: View {
+    @ObservedObject var settings = AppSettings.shared
     let targeted: Bool
     let hasItems: Bool
 
@@ -78,7 +80,7 @@ private struct DropHint: View {
                     Image(systemName: targeted ? "arrow.down.circle.fill" : "tray.and.arrow.down")
                         .font(.system(size: 17, weight: .medium))
                         .symbolEffect(.bounce, value: targeted)
-                    Text(targeted ? "松手放入" : "把文件、截图或图片拖到这里")
+                    Text(targeted ? L("松手放入", "Drop to add") : L("把文件、截图或图片拖到这里", "Drag files, screenshots or images here"))
                         .font(.system(size: 12, weight: .medium))
                 }
                 .foregroundStyle(.white.opacity(targeted ? 1 : 0.55))
@@ -135,7 +137,7 @@ private struct ShelfTile: View {
     /// Screenshots are labelled by capture time ("20:05:17") — their full names all look alike.
     private var displayName: String {
         let name = item.url.deletingPathExtension().lastPathComponent
-        if item.owned, name.hasPrefix("截图 "),
+        if item.owned, name.hasPrefix("截图 ") || name.hasPrefix("Screenshot "),
            let r = name.range(of: #"\d{2}\.\d{2}\.\d{2}"#, options: .regularExpression) {
             return name[r].replacingOccurrences(of: ".", with: ":")
         }
@@ -271,10 +273,10 @@ final class TileMouseView: NSView, NSDraggingSource {
 
     override func menu(for event: NSEvent) -> NSMenu? {
         let m = NSMenu()
-        m.addItem(withTitle: "打开", action: #selector(openItem), keyEquivalent: "").target = self
-        m.addItem(withTitle: "在 Finder 中显示", action: #selector(reveal), keyEquivalent: "").target = self
+        m.addItem(withTitle: L("打开", "Open"), action: #selector(openItem), keyEquivalent: "").target = self
+        m.addItem(withTitle: L("在 Finder 中显示", "Show in Finder"), action: #selector(reveal), keyEquivalent: "").target = self
         m.addItem(.separator())
-        m.addItem(withTitle: "从文件架移除", action: #selector(removeItem), keyEquivalent: "").target = self
+        m.addItem(withTitle: L("从文件架移除", "Remove from Shelf"), action: #selector(removeItem), keyEquivalent: "").target = self
         return m
     }
 

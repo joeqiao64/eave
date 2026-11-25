@@ -344,7 +344,7 @@ final class NotchController {
         dnc.addObserver(forName: .init("com.local.perch.fakeshot"), object: nil, queue: .main) { [weak self] n in
             guard let src = n.userInfo?["path"] as? String else { return }
             let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd HH.mm.ss"
-            let url = ShelfStore.uniqueURL(base: "截图 \(f.string(from: Date()))", ext: "png")
+            let url = ShelfStore.uniqueURL(base: L("截图 ", "Screenshot ") + f.string(from: Date()), ext: "png")
             try? FileManager.default.copyItem(at: URL(fileURLWithPath: src), to: url)
             self?.screenshotter.onFinish?(url)
         }

@@ -25,19 +25,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         let s = AppSettings.shared
-        let shot = NSMenuItem(title: "截图", action: #selector(takeScreenshot), keyEquivalent: "")
+        let shot = NSMenuItem(title: L("截图", "Screenshot"), action: #selector(takeScreenshot), keyEquivalent: "")
         shot.target = self
-        shot.attributedTitle = NSAttributedString(string: "截图    \(s.screenshotShortcut.display)")
+        shot.attributedTitle = NSAttributedString(string: L("截图", "Screenshot") + "    \(s.screenshotShortcut.display)")
         menu.addItem(shot)
         if !s.screenshotShortcutAvailable {
-            menu.addItem(NSMenuItem(title: "快捷键已被其他应用占用", action: nil, keyEquivalent: ""))
+            menu.addItem(NSMenuItem(title: L("快捷键已被其他应用占用", "Shortcut is used by another app"), action: nil, keyEquivalent: ""))
         }
         menu.addItem(.separator())
-        let prefs = NSMenuItem(title: "设置…", action: #selector(openSettings), keyEquivalent: ",")
+        let prefs = NSMenuItem(title: L("设置…", "Settings…"), action: #selector(openSettings), keyEquivalent: ",")
         prefs.target = self
         menu.addItem(prefs)
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "退出 Eave", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: L("退出 Eave", "Quit Eave"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
     }
 
     @objc private func openSettings() { SettingsWindowController.shared.show() }

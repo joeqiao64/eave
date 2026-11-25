@@ -16,6 +16,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp .build/release/Eave "$APP/Contents/MacOS/Eave"
 cp Info.plist "$APP/Contents/Info.plist"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+cp -R Resources/*.lproj "$APP/Contents/Resources/"
 # Sign with the stable local identity so macOS privacy permissions (Screen Recording,
 # Automation) survive rebuilds. Falls back to ad-hoc if the certificate is missing.
 if security find-identity -p codesigning | grep -q "Perch Local Signing"; then

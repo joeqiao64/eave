@@ -45,6 +45,13 @@ struct Shortcut: Codable, Equatable {
     }
 }
 
+enum AppLanguage: String, CaseIterable {
+    case system, zhHans, en
+}
+
+/// Picks the Chinese or English string for the current language setting.
+func L(_ zh: String, _ en: String) -> String { AppSettings.shared.isEnglish ? en : zh }
+
 /// User preferences, persisted in UserDefaults.
 final class AppSettings: ObservableObject {
     static let shared = AppSettings()
@@ -57,6 +64,16 @@ final class AppSettings: ObservableObject {
     @Published var popOpenAfterScreenshot: Bool { didSet { d.set(popOpenAfterScreenshot, forKey: "popOpenAfterScreenshot") } }
     @Published var showCompactMusic: Bool { didSet { d.set(showCompactMusic, forKey: "showCompactMusic") } }
     @Published var showShelfReminder: Bool { didSet { d.set(showShelfReminder, forKey: "showShelfReminder") } }
+    @Published var language: AppLanguage { didSet { d.set(language.rawValue, forKey: "language") } }
+
+    /// "System" follows the first preferred macOS language: Chinese → 中文, anything else → English.
+    var isEnglish: Bool {
+        switch language {
+        case .en: return true
+        case .zhHans: return false
+        case .system: return !(Locale.preferredLanguages.first ?? "en").hasPrefix("zh")
+        }
+    }
 
     /// Set while the shortcut recorder is listening, so the live hotkey doesn't swallow the keys.
     @Published var isRecordingShortcut = false
@@ -76,6 +93,7 @@ final class AppSettings: ObservableObject {
         popOpenAfterScreenshot = bool("popOpenAfterScreenshot", true)
         showCompactMusic = bool("showCompactMusic", true)
         showShelfReminder = bool("showShelfReminder", true)
+        language = AppLanguage(rawValue: d.string(forKey: "language") ?? "") ?? .system
     }
 
     func setLaunchAtLogin(_ on: Bool) {
@@ -123,7 +141,7 @@ final class RecorderButton: NSButton {
     required init?(coder: NSCoder) { fatalError() }
 
     func refresh() {
-        title = recording ? "请按下新快捷键…" : (settings?.screenshotShortcut.display ?? "")
+        title = recording ? L("请按下新快捷键…", "Press new shortcut…") : (settings?.screenshotShortcut.display ?? "")
     }
 
     @objc private func toggle() { recording ? stop() : start() }
@@ -163,34 +181,39 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("截图") {
-                LabeledContent("截图快捷键") {
+            Section(L("截图", "Screenshot")) {
+                LabeledContent(L("截图快捷键", "Screenshot shortcut")) {
                     HStack(spacing: 8) {
                         ShortcutRecorder(settings: settings)
                             .frame(width: 150)
                         if settings.screenshotShortcut != .screenshotDefault {
-                            Button("恢复默认") { settings.screenshotShortcut = .screenshotDefault }
+                            Button(L("恢复默认", "Reset")) { settings.screenshotShortcut = .screenshotDefault }
                         }
                     }
                 }
                 if !settings.screenshotShortcutAvailable {
-                    Label("这个组合已被其他应用占用，请换一个", systemImage: "exclamationmark.triangle.fill")
+                    Label(L("这个组合已被其他应用占用，请换一个", "Another app already uses this shortcut. Pick another one."), systemImage: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
                         .font(.callout)
                 }
-                Toggle("截图后自动复制到剪贴板", isOn: $settings.copyScreenshotToClipboard)
-                Toggle("截图后在刘海里弹出预览", isOn: $settings.popOpenAfterScreenshot)
+                Toggle(L("截图后自动复制到剪贴板", "Copy screenshots to the clipboard"), isOn: $settings.copyScreenshotToClipboard)
+                Toggle(L("截图后在刘海里弹出预览", "Show new screenshots in the notch"), isOn: $settings.popOpenAfterScreenshot)
             }
-            Section("刘海") {
-                Toggle("播放音乐时在刘海两侧显示封面和音波", isOn: $settings.showCompactMusic)
-                Toggle("文件架有内容时在刘海两侧提醒", isOn: $settings.showShelfReminder)
+            Section(L("刘海", "Notch")) {
+                Toggle(L("播放音乐时在刘海两侧显示封面和音波", "Show artwork and waveform while music plays"), isOn: $settings.showCompactMusic)
+                Toggle(L("文件架有内容时在刘海两侧提醒", "Show a reminder when the shelf has files"), isOn: $settings.showShelfReminder)
             }
-            Section("通用") {
-                Toggle("开机自动启动", isOn: Binding(get: { settings.launchAtLogin },
+            Section(L("通用", "General")) {
+                Picker(L("语言", "Language"), selection: $settings.language) {
+                    Text(L("跟随系统", "System")).tag(AppLanguage.system)
+                    Text("简体中文").tag(AppLanguage.zhHans)
+                    Text("English").tag(AppLanguage.en)
+                }
+                Toggle(L("开机自动启动", "Launch at login"), isOn: Binding(get: { settings.launchAtLogin },
                                                   set: { settings.setLaunchAtLogin($0) }))
             }
             Section {
-                LabeledContent("版本", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "–")
+                LabeledContent(L("版本", "Version"), value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "–")
             }
         }
         .formStyle(.grouped)
@@ -208,12 +231,13 @@ final class SettingsWindowController {
         if window == nil {
             let host = NSHostingController(rootView: SettingsView(settings: .shared))
             let w = NSWindow(contentViewController: host)
-            w.title = "Eave 设置"
+            w.title = L("Eave 设置", "Eave Settings")
             w.styleMask = [.titled, .closable]
             w.isReleasedWhenClosed = false
             w.center()
             window = w
         }
+        window?.title = L("Eave 设置", "Eave Settings")
         NSApp.activate(ignoringOtherApps: true)
         window?.makeKeyAndOrderFront(nil)
     }

@@ -52,7 +52,7 @@ final class Screenshotter {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd HH.mm.ss"
         // Unique even for several shots within the same second (otherwise the new one overwrites the old).
-        let url = ShelfStore.uniqueURL(base: "截图 \(f.string(from: Date()))", ext: "png")
+        let url = ShelfStore.uniqueURL(base: L("截图 ", "Screenshot ") + f.string(from: Date()), ext: "png")
         onStart?()
 
         let p = Process()

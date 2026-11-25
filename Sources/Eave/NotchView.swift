@@ -151,6 +151,7 @@ private struct CompactView: View {
 // MARK: - Expanded player
 
 private struct ExpandedPlayer: View {
+    @ObservedObject var settings = AppSettings.shared   // re-render on language change
     @ObservedObject var model: NotchModel
     @ObservedObject var player: NowPlaying
     @ObservedObject var shelf: ShelfStore
@@ -184,10 +185,10 @@ private struct ExpandedPlayer: View {
                         Color.clear.frame(height: band + 2)   // keep text fully below the camera housing
                         HStack(spacing: 6) {
                             VStack(alignment: .leading, spacing: 1) {
-                                Text(player.source == nil ? "没有正在播放" : (player.title ?? ""))
+                                Text(player.source == nil ? L("没有正在播放", "Nothing playing") : (player.title ?? ""))
                                     .font(.system(size: 13, weight: .semibold))
                                     .lineLimit(1)
-                                Text(player.source == nil ? "在 Music 或 Spotify 播放后显示" : (player.artist ?? ""))
+                                Text(player.source == nil ? L("在 Music 或 Spotify 播放后显示", "Play something in Music or Spotify") : (player.artist ?? ""))
                                     .font(.system(size: 11))
                                     .foregroundStyle(.white.opacity(0.55))
                                     .lineLimit(1)
