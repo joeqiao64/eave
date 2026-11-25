@@ -50,6 +50,8 @@
 ### 用 Homebrew（推荐）
 
 ```bash
+brew tap joeqiao64/tap
+brew trust --cask joeqiao64/tap/eave   # Homebrew 要求第三方安装包先信任一次
 brew install --cask joeqiao64/tap/eave
 ```
 
